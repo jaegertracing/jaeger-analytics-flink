@@ -1,0 +1,180 @@
+import java.util.regex.Pattern
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
+plugins {
+    id "jacoco"
+    id "com.github.hierynomus.license" version "0.14.0"
+    id 'com.github.sherter.google-java-format' version '0.6'
+    id "com.github.johnrengelman.shadow" version "2.0.3"
+    id "net.ltgt.errorprone" version "0.0.14"
+    id 'ru.vyarus.animalsniffer' version '1.4.2'
+    id 'io.codearte.nexus-staging' version '0.11.0'
+    id 'com.github.ben-manes.versions' version '0.17.0'
+}
+
+ext.developmentVersion = '0.0.1-SNAPSHOT'
+
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'jacoco'
+    apply plugin: 'java'
+
+    group = 'com.uber.jaeger'
+    version = getVersionForBuild()
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'ru.vyarus.animalsniffer'
+    apply plugin: 'com.github.hierynomus.license'
+    apply plugin: 'maven'
+    apply plugin: 'signing'
+    apply plugin: 'checkstyle'
+
+
+    compileJava {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+
+    compileTestJava {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+
+    jar {
+        from sourceSets.main.output
+        manifest {
+            attributes('Implementation-Title': project.name, 'Implementation-Version': project.version)
+        }
+    }
+
+    if (!version.endsWith("SNAPSHOT")) {
+        nexusStaging {
+            packageGroup = "com.uber"
+            username = ossrhUsername
+            password = ossrhPassword
+            // Dealing with error "Wrong number of received repositories in state 'open'" (http://bit.ly/2ybracm)
+            numberOfRetries = 50
+            delayBetweenRetriesInMillis = 3000
+        }
+
+        uploadArchives.finalizedBy closeAndReleaseRepository
+    }
+
+    animalsniffer {
+        sourceSets = [sourceSets.main]
+    }
+
+    [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+
+    task listJars {
+        doLast {
+            configurations.compile.each { File file -> println file.name }
+        }
+    }
+
+    checkstyle {
+        configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+        toolVersion = "7.6.1"
+        configProperties.checkstyleSuppressions = "${rootProject.rootDir}/config/checkstyle/suppressions.xml"
+    }
+
+    license {
+        header rootProject.file('license-template')
+        skipExistingHeaders true
+        strictCheck true
+        include "**/*.java"
+        ext.year = Calendar.getInstance().get(Calendar.YEAR)
+        ext.name = 'The Jaeger Authors'
+        ignoreFailures = false
+        mapping {
+            java = 'SLASHSTAR_STYLE'
+        }
+    }
+
+    check.dependsOn tasks.license
+
+    apply from: '../gradle/publish.gradle'
+
+    test {
+        testLogging {
+            events TestLogEvent.FAILED, TestLogEvent.SKIPPED
+            exceptionFormat TestExceptionFormat.FULL
+
+            // remove standard output/error logging from --info builds
+            info.events = [
+                    TestLogEvent.FAILED,
+                    TestLogEvent.PASSED,
+                    TestLogEvent.SKIPPED
+            ]
+            info.exceptionFormat TestExceptionFormat.FULL
+        }
+    }
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.16.18'
+        compileOnly 'org.codehaus.mojo:animal-sniffer-annotations:1.16'
+    }
+
+}
+
+task codeCoverageReport(type: JacocoReport, group: 'Coverage reports') {
+    dependsOn(subprojects*.test)
+
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+    subprojects.each {
+        sourceSets it.sourceSets.main
+    }
+
+    reports {
+        html.enabled = true
+        xml.enabled = true
+        xml.destination = file("${buildDir}/reports/jacoco/report.xml")
+    }
+
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['**/crossdock/**',
+                              '**/thrift/**',
+                              '**/thriftjava/**',
+                    ])
+        })
+    }
+}
+
+task printVersion {
+    println getVersionForBuild()
+}
+
+configure(subprojects.findAll {it.name != 'jaeger-thrift'}) {
+    apply plugin: 'net.ltgt.errorprone'
+    dependencies {
+        errorprone 'com.google.errorprone:error_prone_core:2.1.1'
+    }
+    tasks.withType(JavaCompile) {
+        // These are disabled because of a bug with errorprone. See https://github.com/google/error-prone/issues/750
+        options.compilerArgs += [ '-Xep:NestedInstanceOfConditions:OFF',  '-Xep:InstanceOfAndCastMatchWrongType:OFF' ]
+    }
+}
+
+def getVersionForBuild() {
+    String candidateVersion = System.env.TRAVIS_TAG
+
+    if (null == candidateVersion || candidateVersion.isEmpty()) {
+        return ext.developmentVersion
+    }
+
+    if (Pattern.compile("[v]?((\\d+)\\.(\\d+)\\.(\\d+))(\\-RC\\d+)?").matcher(candidateVersion).matches()) {
+        return candidateVersion.drop(1)
+    }
+
+    return ext.developmentVersion
+}

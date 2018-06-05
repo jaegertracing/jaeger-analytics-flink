@@ -1,0 +1,3 @@
+rootProject.name = 'jaeger-analytics'
+include 'core'
+include 'dependencies'
