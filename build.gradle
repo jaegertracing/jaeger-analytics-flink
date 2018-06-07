@@ -1,19 +1,20 @@
-import java.util.regex.Pattern
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+import java.util.regex.Pattern
 
 plugins {
     id "jacoco"
     id "com.github.hierynomus.license" version "0.14.0"
-    id 'com.github.sherter.google-java-format' version '0.6'
     id "com.github.johnrengelman.shadow" version "2.0.3"
-    id "net.ltgt.errorprone" version "0.0.14"
-    id 'ru.vyarus.animalsniffer' version '1.4.2'
-    id 'io.codearte.nexus-staging' version '0.11.0'
     id 'com.github.ben-manes.versions' version '0.17.0'
+    id 'io.codearte.nexus-staging' version '0.11.0'
+    id 'io.franzbecker.gradle-lombok' version '1.14'
 }
 
 ext.developmentVersion = '0.0.1-SNAPSHOT'
+ext.scalaBinaryVersion = '2.10'
+ext.flinkVersion = '1.3.2'
 
 allprojects {
     apply plugin: 'idea'
@@ -30,11 +31,11 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'ru.vyarus.animalsniffer'
     apply plugin: 'com.github.hierynomus.license'
     apply plugin: 'maven'
     apply plugin: 'signing'
     apply plugin: 'checkstyle'
+    apply plugin: 'io.franzbecker.gradle-lombok'
 
 
     compileJava {
@@ -67,10 +68,6 @@ subprojects {
         uploadArchives.finalizedBy closeAndReleaseRepository
     }
 
-    animalsniffer {
-        sourceSets = [sourceSets.main]
-    }
-
     [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
 
     task listJars {
@@ -81,7 +78,7 @@ subprojects {
 
     checkstyle {
         configFile = rootProject.file('config/checkstyle/checkstyle.xml')
-        toolVersion = "7.6.1"
+        toolVersion = "8.1"
         configProperties.checkstyleSuppressions = "${rootProject.rootDir}/config/checkstyle/suppressions.xml"
     }
 
@@ -117,9 +114,8 @@ subprojects {
         }
     }
 
-    dependencies {
-        compileOnly 'org.projectlombok:lombok:1.16.18'
-        compileOnly 'org.codehaus.mojo:animal-sniffer-annotations:1.16'
+    lombok {
+        version = '1.18.0'
     }
 
 }
@@ -152,17 +148,6 @@ task codeCoverageReport(type: JacocoReport, group: 'Coverage reports') {
 
 task printVersion {
     println getVersionForBuild()
-}
-
-configure(subprojects.findAll {it.name != 'jaeger-thrift'}) {
-    apply plugin: 'net.ltgt.errorprone'
-    dependencies {
-        errorprone 'com.google.errorprone:error_prone_core:2.1.1'
-    }
-    tasks.withType(JavaCompile) {
-        // These are disabled because of a bug with errorprone. See https://github.com/google/error-prone/issues/750
-        options.compilerArgs += [ '-Xep:NestedInstanceOfConditions:OFF',  '-Xep:InstanceOfAndCastMatchWrongType:OFF' ]
-    }
 }
 
 def getVersionForBuild() {
