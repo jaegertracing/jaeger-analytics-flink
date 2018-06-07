@@ -3,5 +3,12 @@ plugins {
 }
 
 dependencies {
+    api "org.apache.flink:flink-connector-cassandra_${scalaBinaryVersion}:${flinkVersion}"
+
+    implementation "org.apache.flink:flink-java:${flinkVersion}"
+    implementation "org.apache.flink:flink-streaming-java_${scalaBinaryVersion}:${flinkVersion}"
+    implementation "ch.qos.logback:logback-classic:1.2.3"
+
     testImplementation 'junit:junit:4.12'
+    testImplementation 'org.assertj:assertj-core:3.8.0'
 }
