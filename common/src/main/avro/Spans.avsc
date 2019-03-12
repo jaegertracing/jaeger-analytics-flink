@@ -1,0 +1,230 @@
+{
+	"name": "SpanEnvelope",
+	"namespace": "com.uber.jaeger",
+	"type": "record",
+	"note": "This is a wrapped schema",
+	"fields": [
+		{
+			"default": null,
+			"note": "schema_id of the message body",
+			"type": [
+				"null",
+				"int"
+			],
+			"name": "schema_id"
+		},
+		{
+			"name": "msg",
+			"type": {
+				"name": "Span",
+				"fields": [
+					{
+						"default": 0,
+						"name": "traceIdLow",
+						"type": "long"
+					},
+					{
+						"default": null,
+						"name": "traceIdHigh",
+						"type": [
+							"null",
+							"long"
+						]
+					},
+					{
+						"default": 0,
+						"name": "spanId",
+						"type": "long"
+					},
+					{
+						"default": null,
+						"name": "parentSpanId",
+						"type": [
+							"null",
+							"long"
+						]
+					},
+					{
+						"default": "",
+						"name": "operationName",
+						"type": "string"
+					},
+					{
+						"default": null,
+						"name": "references",
+						"type": [
+							"null",
+							{
+								"items": {
+									"fields": [
+										{
+											"default": "",
+											"name": "refType",
+											"type": "string"
+										},
+										{
+											"default": 0,
+											"name": "traceIdLow",
+											"type": "long"
+										},
+										{
+											"default": 0,
+											"name": "traceIdHigh",
+											"type": "long"
+										},
+										{
+											"default": 0,
+											"name": "spanId",
+											"type": "long"
+										}
+									],
+									"name": "SpanRef",
+									"type": "record"
+								},
+								"type": "array"
+							}
+						]
+					},
+					{
+						"default": 0,
+						"name": "flags",
+						"type": "int"
+					},
+					{
+						"default": 0,
+						"name": "startTime",
+						"type": "long"
+					},
+					{
+						"default": 0,
+						"name": "duration",
+						"type": "long"
+					},
+					{
+						"default": null,
+						"name": "tags",
+						"type": [
+							"null",
+							{
+								"items": {
+									"fields": [
+										{
+											"default": "",
+											"name": "key",
+											"type": "string"
+										},
+										{
+											"default": "",
+											"name": "vType",
+											"type": "string"
+										},
+										{
+											"default": null,
+											"name": "vStr",
+											"type": [
+												"null",
+												"string"
+											]
+										},
+										{
+											"default": null,
+											"name": "vDouble",
+											"type": [
+												"null",
+												"double"
+											]
+										},
+										{
+											"default": null,
+											"name": "vBool",
+											"type": [
+												"null",
+												"boolean"
+											]
+										},
+										{
+											"default": null,
+											"name": "vLong",
+											"type": [
+												"null",
+												"long"
+											]
+										},
+										{
+											"default": null,
+											"name": "vBinary",
+											"type": [
+												"null",
+												"bytes"
+											]
+										}
+									],
+									"name": "Tag",
+									"type": "record"
+								},
+								"type": "array"
+							}
+						]
+					},
+					{
+						"default": null,
+						"name": "logs",
+						"type": [
+							"null",
+							{
+								"items": {
+									"fields": [
+										{
+											"default": 0,
+											"name": "timestamp",
+											"type": "long"
+										},
+										{
+											"default": null,
+											"name": "fields",
+											"type": {
+												"items": "Tag",
+												"type": "array"
+											}
+										}
+									],
+									"name": "Log",
+									"type": "record"
+								},
+								"type": "array"
+							}
+						]
+					},
+					{
+						"default": null,
+						"name": "process",
+						"type": {
+							"fields": [
+								{
+									"default": "",
+									"name": "serviceName",
+									"type": "string"
+								},
+								{
+									"default": null,
+									"name": "tags",
+									"type": [
+										"null",
+										{
+											"items": "Tag",
+											"type": "array"
+										}
+									]
+								}
+							],
+							"name": "Process",
+							"type": "record"
+						}
+					}
+				],
+				"schema_id": 2,
+				"type": "record"
+			}
+		}
+	]
+}

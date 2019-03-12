@@ -1,0 +1,14 @@
+server:
+  type: simple
+  applicationContextPath: /
+  adminContextPath: /admin
+  connector:
+    type: http
+    port: 9876
+
+cassandra:
+  contactPoints:
+    - localhost
+  port: 19042
+  keyspace: jaeger_tracequality_v1_local
+

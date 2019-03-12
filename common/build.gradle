@@ -1,0 +1,10 @@
+apply plugin: "com.commercehub.gradle.plugin.avro"
+
+dependencies {
+    compile "org.apache.flink:flink-connector-cassandra_2.12"
+    compile "org.apache.flink:flink-connector-kafka_2.12"
+    compile "org.apache.flink:flink-avro"
+    compile 'org.apache.avro:avro'
+
+    testCompile 'com.github.stefanbirkner:system-rules'
+}

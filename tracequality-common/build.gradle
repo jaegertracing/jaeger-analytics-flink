@@ -1,0 +1,5 @@
+group 'io.jaeegertracing'
+
+dependencies {
+    compile('com.datastax.cassandra:cassandra-driver-mapping')
+}

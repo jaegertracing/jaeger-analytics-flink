@@ -1,0 +1,15 @@
+apply plugin: 'com.github.johnrengelman.shadow'
+
+dependencies {
+    compile project(":common")
+    compile (project(":tracequality-common")) {
+        transitive = false
+    }
+    compile "org.apache.flink:flink-metrics-dropwizard"
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'io.jaegertracing.tracequality.TraceQualityJob'
+    }
+}

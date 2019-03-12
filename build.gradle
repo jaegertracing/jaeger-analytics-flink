@@ -1,0 +1,73 @@
+plugins {
+    id 'java'
+    id 'io.franzbecker.gradle-lombok' version '1.14'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id "com.commercehub.gradle.plugin.avro" version "0.9.1"
+    id "io.spring.dependency-management" version "1.0.6.RELEASE"
+}
+
+ext.flinkVersion = '1.7.2'
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'io.franzbecker.gradle-lombok'
+
+    dependencyManagement {
+        dependencies {
+            dependencySet(group: "org.apache.flink", version: flinkVersion) {
+                entry 'flink-avro'
+                entry 'flink-connector-cassandra_2.12'
+                entry 'flink-connector-kafka_2.12'
+                entry 'flink-java'
+                entry 'flink-metrics-dropwizard'
+                entry 'flink-metrics-prometheus_2.12'
+                entry 'flink-streaming-java_2.12'
+                entry 'flink-streaming-scala_2.12'
+                entry 'flink-test-utils_2.12'
+            }
+
+            dependencySet(group: 'com.datastax.cassandra', version: '3.6.0') {
+                entry 'cassandra-driver-core'
+                entry 'cassandra-driver-mapping'
+            }
+
+            dependency 'org.apache.avro:avro:1.8.2'
+
+            // logging
+            dependency 'ch.qos.logback:logback-classic:1.2.3'
+            dependency 'net.logstash.logback:logstash-logback-encoder:4.11'
+            dependency 'org.slf4j:log4j-over-slf4j:1.7.25'
+            dependency 'log4j:log4j:1.2.17'
+
+            // test dependencies
+            dependency 'junit:junit:4.12'
+            dependency 'org.assertj:assertj-core:3.8.0'
+            dependency 'org.mockito:mockito-core:2.19.1'
+            dependency 'com.github.stefanbirkner:system-rules:1.18.0'
+        }
+    }
+
+    dependencies {
+        compile 'ch.qos.logback:logback-classic'
+        compile 'net.logstash.logback:logstash-logback-encoder'
+        compile 'org.slf4j:log4j-over-slf4j'
+
+        compileOnly "org.apache.flink:flink-java"
+        compileOnly "org.apache.flink:flink-streaming-java_2.12"
+        compileOnly "org.apache.flink:flink-streaming-scala_2.12"
+        compileOnly "org.apache.flink:flink-metrics-prometheus_2.12"
+
+        testCompile "org.apache.flink:flink-java"
+        testCompile "org.apache.flink:flink-streaming-java_2.12"
+        testCompile 'junit:junit'
+        testCompile 'org.assertj:assertj-core'
+        testCompile 'org.mockito:mockito-core'
+        testCompile "org.apache.flink:flink-test-utils_2.12"
+    }
+
+    repositories {
+        jcenter()
+    }
+}
+

@@ -1,0 +1,54 @@
+group 'io.jaegertracing'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    compile {
+        exclude group: 'log4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'io.dropwizard:dropwizard-bom:1.0.9'
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Main-Class': "io.jaegertracing.analytics.query.QueryApplication"
+        )
+    }
+}
+
+shadowJar {
+    // Output to build/libs/start.jar
+    baseName = 'start'
+    classifier = null
+    version = null
+
+    mergeServiceFiles()
+}
+
+dependencies {
+    compile(project(':tracequality-common')) {
+        transitive = false
+    }
+    compile('io.dropwizard:dropwizard-core')
+    compile('systems.composable:dropwizard-cassandra:4.1.0')
+    compile('com.datastax.cassandra:cassandra-driver-core')
+    compile('com.datastax.cassandra:cassandra-driver-mapping')
+
+    testCompile('io.dropwizard:dropwizard-testing')
+    testCompile('org.cassandraunit:cassandra-unit:3.5.0.1')
+    testCompile('net.javacrumbs.json-unit:json-unit-assertj:2.0.0.RC5')
+}

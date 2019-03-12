@@ -1,0 +1,12 @@
+apply plugin: 'com.github.johnrengelman.shadow'
+
+dependencies {
+    compile project(":common")
+    compile "org.apache.flink:flink-metrics-dropwizard"
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'io.jaegertracing.dependencies.DependenciesJob'
+    }
+}
