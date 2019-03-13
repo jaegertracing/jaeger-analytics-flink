@@ -1,4 +1,4 @@
-image: openjdk:8-jre-alpine
+image: openjdk:8-jdk-alpine
 
 # Disable the Gradle daemon for Continuous Integration servers as correctness
 # is usually a priority over speed in CI environments. Using a fresh
